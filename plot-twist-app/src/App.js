@@ -8,7 +8,7 @@ import axios from 'axios';
 //functions
 const sendMessageToServer = async (message) => {
   try {
-      const response = await axios.post('http:172.24.16.1:5000', { message });
+      const response = await axios.post('http://127.0.0.1/chat', { message });
       return response.data;
   } catch (error) {
       console.error("Error sending message to Flask server: ", error);
