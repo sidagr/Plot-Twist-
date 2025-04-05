@@ -1,17 +1,21 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Remove service worker import if not needed
+// import * as serviceWorker from './serviceWorker'; 
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+import { AppRegistry } from 'react-native';
+import appConfig from './app.json';  // Import app.json as a whole
+
+const appName = appConfig.name; // Access the name property
+
+AppRegistry.registerComponent(appName, () => App);
+AppRegistry.runApplication(appName, {
+  initialProps: {},
+  rootTag: document.getElementById('root'),
+});
+
+// Uncomment if you want to enable service workers later
+// serviceWorker.unregister();
