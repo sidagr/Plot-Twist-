@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Button, Animated, FlatList, TextInput } from 'r
 import { useNavigate } from 'react-router-dom';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // For web routing
 import CustomButton from './components/CustomButton'
+import AuthButton from './components/AuthButton'
 import ChoiceButton from './components/ChoiceButton'
 import axios from 'axios';
 import HTMLFlipBook from 'react-pageflip';
@@ -85,29 +86,34 @@ const HomeScreen = () => {
     }).start();
   }, [fadeAnim]);
   
-  const { loginWithRedirect } = useAuth0();
-  const { logout } = useAuth0();
+  const { loginWithRedirect, logout, isAuthenticated } = useAuth0();
+  //const { logout } = useAuth0();
+
+  useEffect(() => {
+    // You can do something here when isAuthenticated changes, 
+    // like logging, triggering side effects, etc.
+  }, [isAuthenticated]); // Only trigger on change in `isAuthenticated`
 
   return (
     <View style={styles.HomeContainer}>
       <Text style={styles.WelcomeText}>What will be your plot twist?</Text>
       <CustomButton title = "Begin your journey" onPress= {() => navigate('/start')}/>
-      <button onClick={() => loginWithRedirect()}>Log In</button>;
-      <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
-        Log Out
-      </button>
+      <View style={styles.buttonSpacer} />
+      {isAuthenticated ? (
+        <AuthButton 
+          title="Logout" 
+          onPress={() => logout({ logoutParams: { returnTo: window.location.origin } })} 
+        />
+      ) : (
+        <AuthButton 
+          title="Login" 
+          onPress={() => loginWithRedirect()} 
+        />
+      )}
+      <View style={styles.buttonSpacer} />
     </View>
   );
 };
-
-// const StartScreen = () => {
-//   const navigate  = useNavigate();
-//   return (
-//   <View style={styles.HomeContainer}>
-//     <Text style={styles.WelcomeText}>Introduce yourself to me!</Text>
-//   </View>
-//   );
-// };
 
 const StartScreen = () => {
   const [messages, setMessages] = useState([]);
@@ -129,25 +135,38 @@ const StartScreen = () => {
   };
 
   return (
-      <View style={styles.StartContainer}>
-          <FlatList
-              data={messages}
-              renderItem={({ item }) => (
-                  <View style={[styles.messageBubble, item.sender === 'user' ? styles.userBubble : styles.botBubble]}>
-                      <Text>{item.text}</Text>
-                  </View>
-              )}
-              keyExtractor={(item, index) => index.toString()}
-          />
-          <TextInput
-              style={styles.input}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Type your message..."
-          />
-          <Button title="Send" onPress={handleSend} />
-          <CustomButton title="Let's start your adventures!" onPress={() => navigate('/question')} />
+    <View style={styles.HomeContainer}>
+      <Text style={styles.WelcomeText}>Let's get to know you!</Text>
+      <View style={styles.chatContainer}>
+        <FlatList
+          data={messages}
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.messageBubble,
+                item.sender === 'user' ? styles.userBubble : styles.botBubble,
+              ]}
+            >
+              <Text style={styles.messageText}>{item.text}</Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Type your message..."
+        />
+        <View style={styles.buttonSpacer} />
+        <CustomButton title="Send" onPress={handleSend} style/>
+        <View style={styles.buttonSpacer} />
+        <CustomButton
+          title="Let's start your adventures!"
+          onPress={() => navigate('/question')}
+        />
       </View>
+    </View>
   );
 };
 
@@ -224,28 +243,52 @@ const styles = StyleSheet.create({
   },
   StartContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    padding: 10,
+    justifyContent: 'center', // Centers the chat UI vertically
+    alignItems: 'center', // Centers the chat UI horizontally
+    backgroundColor: '#f4f4f4', // Background color for the page
+    padding: 20,
   },
-  input: {
-      height: 40,
-      borderColor: 'gray',
-      borderWidth: 1,
-      marginBottom: 10,
-      paddingLeft: 10,
+  SendButton: {
+    width: 80,
+    height: 50,
+  },
+  chatContainer: {
+    width: '90%', // Makes the container width 90% of the screen width
+    maxWidth: 600, // Ensures the container does not stretch too wide
+    padding: 20,
+    borderRadius: 20, // Rounded corners for the container
+    backgroundColor: 'white', // White background for the chat box
+    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)', // Slight shadow for effect
   },
   messageBubble: {
-      marginBottom: 10,
-      padding: 10,
-      borderRadius: 10,
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 20,
+    maxWidth: '80%', // Prevents bubbles from being too wide
   },
   userBubble: {
-      alignSelf: 'flex-end',
-      backgroundColor: '#f0f0f0',
+    backgroundColor: '#e4bad7', // Blue color for the user's messages
+    alignSelf: 'flex-end', // Aligns the user's messages to the right
   },
   botBubble: {
-      alignSelf: 'flex-start',
-      backgroundColor: '#e0e0e0',
+    backgroundColor: '#f1f1f1', // Light gray color for bot's messages
+    alignSelf: 'flex-start', // Aligns the bot's messages to the left
+  },
+  messageText: {
+    fontSize: 18, // Increased font size for the messages
+    color: 'white', // White text for user bubbles
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginTop: 15,
+    paddingHorizontal: 10,
+    fontSize: 16, // Increased font size for the input text
+  },
+  buttonSpacer: {
+    marginVertical: 10,
   },
 });
 
