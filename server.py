@@ -8,7 +8,7 @@ CORS(app) # allows requests
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json.get('message')
-    print(user_message)
+    print("message is", user_message)
     bot_response = "This is a bot response"  # Your bot logic goes here
     return jsonify({'reply': bot_response})
 
