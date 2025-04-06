@@ -6,4 +6,11 @@ React native ->
 
 LangChain ->
 
+LangGraph ->
+
 External Libraries used:
+Flask ->
+
+Base64 ->
+
+@auth0/auth0-react ->
