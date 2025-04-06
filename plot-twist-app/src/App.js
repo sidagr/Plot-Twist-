@@ -170,7 +170,7 @@ const StartScreen = () => {
         <View style={styles.buttonSpacer} />
 
         {/* Conditionally render the "Let's start your adventures!" button */}
-        {parametersFilled && (
+        {parametersFilled && String(parametersFilled).trim() !== "" && String(parametersFilled) !== "False" && (
           <CustomButton
             title="Let's start your adventures!"
             onPress={() => navigate('/decision')}

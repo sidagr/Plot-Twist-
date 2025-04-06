@@ -6,11 +6,12 @@ import requests
 app = Flask(__name__)
 CORS(app) # allows requests
 
-IMAGE_URL = 'http://127.0.0.1:5002/generate-images'
+dict = None
 
 @app.route('/generate-images', methods=['POST'])
 def generate_image_from_scenario(scenario_text):
     try:
+        IMAGE_URL = 'http://127.0.0.1:5002/jupyter-images'
         response = requests.post(
             IMAGE_URL,
             json={"contents": [scenario_text]},
@@ -36,6 +37,7 @@ def generate_image_from_scenario(scenario_text):
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    global dict
     user_message = request.json.get('message')
     print("message is", user_message)
     jupyter_url = 'http://127.0.0.1:5001/trigger-feedback'
@@ -47,6 +49,8 @@ def chat():
         )
         response_data = response.json()  # Parse the JSON response first
         if 'feedback' in response_data and 'filled' in response_data:
+            print("filled is", response_data['filled'])
+            dict = response_data['dict']
             return jsonify({'reply': response_data['feedback'], 'filled': response_data['filled']})
         else:
             return jsonify({'reply': 'Error: No feedback received'})
