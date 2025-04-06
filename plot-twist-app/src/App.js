@@ -60,13 +60,19 @@ const sendMessageToServer = async (message) => {
 // MyBook: function to assemble the decisions book for an individual session.
 //
 
-function MyBook(props) {
+function MyBook({ imageResults }) {
   return (
     <HTMLFlipBook width={240} height={320}>
-      <Page imageSrc={testImage} header="Page header" number={1}>Page content</Page>
-      <Page number="2">Page text</Page>
-      <Page number="3">Page text</Page>
-      <Page number="4">Page text</Page>
+      {imageResults.map((imgObj, index) => (
+        <Page
+          key={index}
+          imageSrc={`data:image/png;base64,${imgObj.image_base64}`}
+          header={`Scenario: ${imgObj.scenario}`}
+          number={index + 1}
+        >
+          This is page {index + 1}.
+        </Page>
+      ))}
     </HTMLFlipBook>
   );
 }
@@ -186,21 +192,65 @@ const StartScreen = () => {
 const DecisionScreen = () => {
   const navigate = useNavigate();
   const [userChoice, setUserChoice] = useState(null); // Initially, no choice is selected
+  const [imageData, setImageData] = useState(null); // Stores image data returned by Flask
 
-  const handleChoice = (choice) => {
-    setUserChoice(choice); // Set the choice when a button is clicked
+  const handleChoice1 = async () => {
+    setUserChoice(1);
+    const scenarioText = "No Twist.";
+    await fetchImageFromScenario(scenarioText);
+  };
+
+  const handleChoice2 = async () => {
+    setUserChoice(2);
+    const scenarioText = "Twist.";
+    await fetchImageFromScenario(scenarioText);
+  };
+
+  const fetchImageFromScenario = async (scenarioText) => {
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/generate-images', {
+        scenario_text: scenarioText,
+      });
+
+      // Success: Save image data
+      setImageData(response.data); // includes image_base64, width, height, etc.
+      console.log("Image data set:", imageData);
+    } catch (error) {
+      console.error("Failed to generate image from scenario:", error);
+    }
   };
 
   return (
     <View style={styles.HomeContainer}>
       <Text style={styles.WelcomeText}>What's your adventure?</Text>
-      <div style={{ display: 'flex', gap: '20px'}}>
-        <CustomButton title="CHOICE 1" onPress={() => handleChoice(1)} />
-        <CustomButton title="CHOICE 2" onPress={() => handleChoice(2)} />
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <CustomButton title="CHOICE 1" onPress={handleChoice1} />
+        <CustomButton title="CHOICE 2" onPress={handleChoice2} />
       </div>
+
       <div style={{ marginTop: '20px' }}>
-        {userChoice === 1 && MyBook()}
-        {userChoice === 2 && MyBook()}
+        {userChoice !== null && !imageData && <p>Loading your images...</p>}
+        
+        {userChoice !== null && imageData && (
+          <div>
+          {imageData && imageData.map((image, index) => (
+            <div key={index}>
+              <img 
+                src={`data:image/png;base64,${image.image_base64}`} 
+                alt={image.scenario}
+                style={{ 
+                  width: `${image.width}px`, 
+                  height: `${image.height}px`,
+                  margin: '10px'
+                }}
+              />
+              <p>{image.scenario}</p>
+            </div>
+          ))}
+        </div>
+    
+        )}
+        
         {userChoice === null && <p>Please select a choice!</p>}
       </div>
     </View>

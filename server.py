@@ -9,20 +9,32 @@ CORS(app) # allows requests
 dict = None
 
 @app.route('/generate-images', methods=['POST'])
-def generate_image_from_scenario(scenario_text):
+def generate_image_from_scenario():
     try:
+        user_message = request.json.get('message')
         IMAGE_URL = 'http://127.0.0.1:5002/jupyter-images'
-        response = requests.post(
-            IMAGE_URL,
-            json={"contents": [scenario_text]},
+        jupyter_url = 'http://127.0.0.1:5001/trigger-scenario'
+        first_response = requests.post(
+            jupyter_url,
+            json={"answer": user_message},
             headers={'Content-Type': 'application/json'}
         )
+        scenarios = first_response.json().get('scenarios')
+        if not scenarios:
+            raise ValueError("Jupyter server returned no scenarios.")
+        response = requests.post(
+            IMAGE_URL,
+            json={"contents": scenarios},
+            headers={'Content-Type': 'application/json'}
+        )
+        
         response_data = response.json()
+        print("Image Generation Response JSON:", response_data, flush=True)
 
         if 'results' not in response_data or not response_data['results']:
             raise ValueError("Image microservice returned no results.")
 
-        return response_data['results'][0]  # Return the first image result
+        return jsonify(response_data['results'])
 
     except Exception as e:
         print(f"Error in image generation: {str(e)}")
@@ -31,7 +43,7 @@ def generate_image_from_scenario(scenario_text):
             "width": None,
             "height": None,
             "aspect_ratio": None,
-            "scenario": scenario_text,
+            "scenario": None,
             "error": str(e)
         }
 
