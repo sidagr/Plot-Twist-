@@ -31,12 +31,16 @@ const HomeScreen = () => {
   }, [fadeAnim]);
   
   const { loginWithRedirect } = useAuth0();
+  const { logout } = useAuth0();
 
   return (
     <View style={styles.HomeContainer}>
       <Text style={styles.WelcomeText}>What will be your plot twist?</Text>
       <CustomButton title = "Begin your journey" onPress= {() => navigate('/start')}/>
       <button onClick={() => loginWithRedirect()}>Log In</button>;
+      <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+        Log Out
+      </button>
     </View>
   );
 };
