@@ -18,8 +18,8 @@ def chat():
             headers={'Content-Type': 'application/json'}
         )
         response_data = response.json()  # Parse the JSON response first
-        if 'feedback' in response_data:
-            return jsonify({'reply': response_data['feedback']})
+        if 'feedback' in response_data and 'filled' in response_data:
+            return jsonify({'reply': response_data['feedback'], 'filled': response_data['filled']})
         else:
             return jsonify({'reply': 'Error: No feedback received'})
     except Exception as e:
