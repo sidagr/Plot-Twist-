@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useAuth0 } from "@auth0/auth0-react"
 import { View, Text, StyleSheet, Button, Animated, FlatList, TextInput } from 'react-native'; // React Native components
 import { useNavigate } from 'react-router-dom';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // For web routing
@@ -29,10 +30,13 @@ const HomeScreen = () => {
     }).start();
   }, [fadeAnim]);
   
+  const { loginWithRedirect } = useAuth0();
+
   return (
     <View style={styles.HomeContainer}>
       <Text style={styles.WelcomeText}>What will be your plot twist?</Text>
       <CustomButton title = "Begin your journey" onPress= {() => navigate('/start')}/>
+      <button onClick={() => loginWithRedirect()}>Log In</button>;
     </View>
   );
 };
