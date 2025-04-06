@@ -118,20 +118,27 @@ const HomeScreen = () => {
 const StartScreen = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [parametersFilled, setParametersFilled] = useState(''); // State to store filled parameters
   const navigate = useNavigate();
 
   const handleSend = async () => {
-      const userMessage = { text: input, sender: 'user' };
-      setMessages([...messages, userMessage]);
+    const userMessage = { text: input, sender: 'user' };
+    setMessages([...messages, userMessage]);
 
-      // Send the message to Flask and get the bot's response
-      const serverResponse = await sendMessageToServer(input);
-      if (serverResponse) {
-          const botMessage = { text: serverResponse.reply, sender: 'bot' };
-          setMessages([...messages, userMessage, botMessage]);
-      }
+    // Send the message to Flask and get the bot's response
+    const serverResponse = await sendMessageToServer(input);
+    if (serverResponse) {
+      const botMessage = { text: serverResponse.reply, sender: 'bot' };
+      const parametersFilledResponse = serverResponse.filled; // Assuming this is a string or object
 
-      setInput('');
+      // Set the parametersFilled state
+      setParametersFilled(parametersFilledResponse);
+
+      // Set both user and bot messages in the state
+      setMessages([...messages, userMessage, botMessage]);
+    }
+
+    setInput('');
   };
 
   return (
@@ -159,26 +166,22 @@ const StartScreen = () => {
           placeholder="Type your message..."
         />
         <View style={styles.buttonSpacer} />
-        <CustomButton title="Send" onPress={handleSend} style/>
+        <CustomButton title="Send" onPress={handleSend} style={styles.button} />
         <View style={styles.buttonSpacer} />
-        <CustomButton
-          title="Let's start your adventures!"
-          onPress={() => navigate('/question')}
-        />
+
+        {/* Conditionally render the "Let's start your adventures!" button */}
+        {parametersFilled && (
+          <CustomButton
+            title="Let's start your adventures!"
+            onPress={() => navigate('/decision')}
+            style={styles.button}
+          />
+        )}
       </View>
     </View>
   );
 };
 
-const QuestionScreen = () => {
-  const navigate = useNavigate();
-  return (
-    <View style={styles.HomeContainer}>
-      <Text style={styles.WelcomeText}>What's on your mind?</Text>
-      <CustomButton title="View my journeys" onPress={() => navigate('/decision')} />
-    </View>
-  );
-};
 
 const DecisionScreen = () => {
   const navigate = useNavigate();
@@ -211,7 +214,6 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/start" element={<StartScreen />} />
-          <Route path="/question" element={<QuestionScreen />}/>
           <Route path="/decision" element={<DecisionScreen />}/>
         </Routes>
       </Router>
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end', // Aligns the user's messages to the right
   },
   botBubble: {
-    backgroundColor: '#f1f1f1', // Light gray color for bot's messages
+    backgroundColor: '#872cd3', // Light gray color for bot's messages
     alignSelf: 'flex-start', // Aligns the bot's messages to the left
   },
   messageText: {
