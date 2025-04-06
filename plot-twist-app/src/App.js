@@ -3,9 +3,47 @@ import { View, Text, StyleSheet, Button, Animated, FlatList, TextInput } from 'r
 import { useNavigate } from 'react-router-dom';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // For web routing
 import CustomButton from './components/CustomButton'
+import ChoiceButton from './components/ChoiceButton'
 import axios from 'axios';
+import HTMLFlipBook from 'react-pageflip';
+import './styles.css';
+import testImage from './assets/images/sid.jpg';
 
-//functions
+//
+//constants:
+//
+const userChoice = false;
+
+const Page = React.forwardRef((props, ref) => {
+  return (
+    <div className="page-container" ref={ref}>
+      <div className="image-container">
+        <img src={props.imageSrc} alt="Page Visual" width='160' height='240'/>
+      </div>
+      <div className="text-container">
+        <h1>{props.header}</h1>
+        <p>{props.children}</p>
+        <p>Page number: {props.number}</p>
+      </div>
+    </div>
+  );
+});
+
+
+//
+// functions:
+//
+
+//
+// switchUserChoice: change which choice the user wants to view.
+//
+function switchUserChoice(props) {
+  userChoice = true;
+}
+
+//
+// sendMessageToServer: function to send messages to the flask server.
+//
 const sendMessageToServer = async (message) => {
   try {
       const response = await axios.post('http://127.0.0.1:5000/chat', { message });
@@ -16,7 +54,24 @@ const sendMessageToServer = async (message) => {
   }
 };
 
+//
+// MyBook: function to assemble the decisions book for an individual session.
+//
 
+function MyBook(props) {
+  return (
+    <HTMLFlipBook width={240} height={320}>
+      <Page imageSrc={testImage} header="Page header" number={1}>Page content</Page>
+      <Page number="2">Page text</Page>
+      <Page number="3">Page text</Page>
+      <Page number="4">Page text</Page>
+    </HTMLFlipBook>
+  );
+}
+
+//
+// Screens:
+//
 const HomeScreen = () => {
   const navigate = useNavigate();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -49,6 +104,7 @@ const HomeScreen = () => {
 const StartScreen = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const navigate = useNavigate();
 
   const handleSend = async () => {
       const userMessage = { text: input, sender: 'user' };
@@ -82,18 +138,57 @@ const StartScreen = () => {
               placeholder="Type your message..."
           />
           <Button title="Send" onPress={handleSend} />
+          <CustomButton title="Let's start your adventures!" onPress={() => navigate('/question')} />
       </View>
+  );
+};
+
+const QuestionScreen = () => {
+  const navigate = useNavigate();
+  return (
+    <View style={styles.HomeContainer}>
+      <Text style={styles.WelcomeText}>What's on your mind?</Text>
+      <CustomButton title="View my journeys" onPress={() => navigate('/decision')} />
+    </View>
+  );
+};
+
+const DecisionScreen = () => {
+  const navigate = useNavigate();
+  const [userChoice, setUserChoice] = useState(null); // Initially, no choice is selected
+
+  const handleChoice = (choice) => {
+    setUserChoice(choice); // Set the choice when a button is clicked
+  };
+
+  return (
+    <View style={styles.HomeContainer}>
+      <Text style={styles.WelcomeText}>What's your adventure?</Text>
+      <div style={{ display: 'flex', gap: '20px'}}>
+        <CustomButton title="CHOICE 1" onPress={() => handleChoice(1)} />
+        <CustomButton title="CHOICE 2" onPress={() => handleChoice(2)} />
+      </div>
+      <div style={{ marginTop: '20px' }}>
+        {userChoice === 1 && MyBook()}
+        {userChoice === 2 && MyBook()}
+        {userChoice === null && <p>Please select a choice!</p>}
+      </div>
+    </View>
   );
 };
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomeScreen />} />
-        <Route path="/start" element={<StartScreen />} />
-      </Routes>
-    </Router>
+    <div style={{ height: '100vh', overflowY: 'auto' }}> {/* Make the entire page scrollable */}
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomeScreen />} />
+          <Route path="/start" element={<StartScreen />} />
+          <Route path="/question" element={<QuestionScreen />}/>
+          <Route path="/decision" element={<DecisionScreen />}/>
+        </Routes>
+      </Router>
+    </div>
   );
 };
 
